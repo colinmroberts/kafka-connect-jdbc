@@ -27,9 +27,9 @@
     </parent>
 
     <groupId>io.confluent</groupId>
-    <artifactId>kafka-connect-jdbc</artifactId>
+    <artifactId>kafka-connect-jdbc-flipp</artifactId>
     <packaging>jar</packaging>
-    <name>kafka-connect-jdbc</name>
+    <name>kafka-connect-jdbc-flipp</name>
     <organization>
         <name>Confluent, Inc.</name>
         <url>http://confluent.io</url>

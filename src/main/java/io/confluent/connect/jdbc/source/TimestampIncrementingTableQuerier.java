@@ -67,6 +67,7 @@ public class TimestampIncrementingTableQuerier extends TableQuerier implements C
   private final List<ColumnId> timestampColumns;
   private String incrementingColumnName;
   private long timestampDelay;
+  private int queryLimit;
   private TimestampIncrementingOffset offset;
   private TimestampIncrementingCriteria criteria;
   private final Map<String, String> partition;
@@ -78,13 +79,16 @@ public class TimestampIncrementingTableQuerier extends TableQuerier implements C
                                            List<String> timestampColumnNames,
                                            String incrementingColumnName,
                                            Map<String, Object> offsetMap, Long timestampDelay,
-                                           TimeZone timeZone) {
+                                           TimeZone timeZone,
+                                           int queryLimit) {
     super(dialect, mode, name, topicPrefix);
     this.incrementingColumnName = incrementingColumnName;
     this.timestampColumnNames = timestampColumnNames != null
                                 ? timestampColumnNames : Collections.<String>emptyList();
     this.timestampDelay = timestampDelay;
     this.offset = TimestampIncrementingOffset.fromMap(offsetMap);
+
+    this.queryLimit = queryLimit;
 
     this.timestampColumns = new ArrayList<>();
     for (String timestampColumn : this.timestampColumnNames) {
@@ -137,10 +141,19 @@ public class TimestampIncrementingTableQuerier extends TableQuerier implements C
     criteria = dialect.criteriaFor(incrementingColumn, timestampColumns);
     criteria.whereClause(builder);
 
+    applyLimit(builder);
+
     String queryString = builder.toString();
     recordQuery(queryString);
     log.debug("{} prepared SQL query: {}", this, queryString);
     stmt = dialect.createPreparedStatement(db, queryString);
+  }
+
+  protected void applyLimit(ExpressionBuilder builder) {
+    if (queryLimit > 0) {
+      builder.append(" LIMIT ");
+      builder.append(queryLimit);
+    }
   }
 
   private void findDefaultAutoIncrementingColumn(Connection db) throws SQLException {
@@ -223,6 +236,7 @@ public class TimestampIncrementingTableQuerier extends TableQuerier implements C
                                         ? incrementingColumnName
                                         : "") + '\''
            + ", timestampColumns=" + timestampColumnNames
+           + ", queryLimit='" + queryLimit + '\''
            + '}';
   }
 }

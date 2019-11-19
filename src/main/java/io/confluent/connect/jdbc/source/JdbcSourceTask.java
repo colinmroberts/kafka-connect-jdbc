@@ -150,6 +150,11 @@ public class JdbcSourceTask extends SourceTask {
     boolean validateNonNulls
         = config.getBoolean(JdbcSourceTaskConfig.VALIDATE_NON_NULL_CONFIG);
     TimeZone timeZone = config.timeZone();
+    boolean queryLimitRows
+        = config.getBoolean(JdbcSourceTaskConfig.QUERY_LIMIT_ROWS_CONFIG);
+    int batchMaxRows
+        = config.getInt(JdbcSourceTaskConfig.BATCH_MAX_ROWS_CONFIG);
+
 
     for (String tableOrQuery : tablesOrQuery) {
       final List<Map<String, String>> tablePartitionsToCheck;
@@ -192,6 +197,13 @@ public class JdbcSourceTask extends SourceTask {
       }
 
       String topicPrefix = config.getString(JdbcSourceTaskConfig.TOPIC_PREFIX_CONFIG);
+      int queryLimit = queryLimitRows ? batchMaxRows : -1;
+
+      if (queryLimitRows && !mode.equals(JdbcSourceTaskConfig.MODE_INCREMENTING)
+              && !mode.equals(JdbcSourceTaskConfig.MODE_TIMESTAMP_INCREMENTING)) {
+        throw new ConnectException("query.limit.rows can only be used with "
+          + "incrementing or timestamp+incrementing modes");
+      }
 
       if (mode.equals(JdbcSourceTaskConfig.MODE_BULK)) {
         tableQueue.add(
@@ -208,7 +220,8 @@ public class JdbcSourceTask extends SourceTask {
                 incrementingColumn,
                 offset,
                 timestampDelayInterval,
-                timeZone
+                timeZone,
+                queryLimit
             )
         );
       } else if (mode.equals(JdbcSourceTaskConfig.MODE_TIMESTAMP)) {
@@ -222,7 +235,8 @@ public class JdbcSourceTask extends SourceTask {
                 null,
                 offset,
                 timestampDelayInterval,
-                timeZone
+                timeZone,
+                queryLimit
             )
         );
       } else if (mode.endsWith(JdbcSourceTaskConfig.MODE_TIMESTAMP_INCREMENTING)) {
@@ -236,7 +250,8 @@ public class JdbcSourceTask extends SourceTask {
                 incrementingColumn,
                 offset,
                 timestampDelayInterval,
-                timeZone
+                timeZone,
+                queryLimit
             )
         );
       }

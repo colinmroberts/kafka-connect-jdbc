@@ -90,6 +90,14 @@ public class JdbcSourceConnectorConfig extends AbstractConfig {
   public static final int BATCH_MAX_ROWS_DEFAULT = 100;
   private static final String BATCH_MAX_ROWS_DISPLAY = "Max Rows Per Batch";
 
+  public static final String QUERY_LIMIT_ROWS_CONFIG = "query.limit.rows";
+  private static final String QUERY_LIMIT_ROWS_DOC =
+          "True to append a LIMIT clause to the query. This can help when queries will return "
+          + "large result sets. The LIMIT value is taken from the batch.max.rows setting. "
+          + "Can only be used with incrementing or timestamp+incrementing modes.";
+  public static final boolean QUERY_LIMIT_ROWS_DEFAULT = false;
+  private static final String QUERY_LIMIT_ROWS_DISPLAY = "Use LIMIT clause in query";
+
   public static final String NUMERIC_PRECISION_MAPPING_CONFIG = "numeric.precision.mapping";
   private static final String NUMERIC_PRECISION_MAPPING_DOC =
       "Whether or not to attempt mapping NUMERIC values by precision to integral types. This "
@@ -539,6 +547,16 @@ public class JdbcSourceConnectorConfig extends AbstractConfig {
         ++orderInGroup,
         Width.SHORT,
         BATCH_MAX_ROWS_DISPLAY
+    ).define(
+        QUERY_LIMIT_ROWS_CONFIG,
+        Type.BOOLEAN,
+        QUERY_LIMIT_ROWS_DEFAULT,
+        Importance.LOW,
+        QUERY_LIMIT_ROWS_DOC,
+        CONNECTOR_GROUP,
+        ++orderInGroup,
+        Width.SHORT,
+        QUERY_LIMIT_ROWS_DISPLAY
     ).define(
         TABLE_POLL_INTERVAL_MS_CONFIG,
         Type.LONG,
